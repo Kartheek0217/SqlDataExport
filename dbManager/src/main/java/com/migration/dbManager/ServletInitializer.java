@@ -1,4 +1,4 @@
-package com.project.dataexport;
+package com.migration.dbManager;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -7,7 +7,7 @@ public class ServletInitializer extends SpringBootServletInitializer {
 
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-		return application.sources(DataexportApplication.class);
+		return application.sources(DbManagerApplication.class);
 	}
 
 }
