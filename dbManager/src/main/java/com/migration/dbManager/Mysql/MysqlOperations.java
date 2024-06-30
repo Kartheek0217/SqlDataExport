@@ -2,14 +2,15 @@ package com.migration.dbManager.Mysql;
 
 import java.io.FileWriter;
 import java.io.IOException;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.MapHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,6 +104,33 @@ public class MysqlOperations {
 		} catch (IOException e) {
 			LOG.error("Error writing to CSV file: {}", filePath, e);
 		}
+	}
+
+	public Map<String, Object> insertAndGetGeneratedKeys(String sql, String[] inputDataList) {
+
+		QueryRunner runner = new QueryRunner();
+		Map<String, Object> generatedKeys = new HashMap<>();
+		try (Connection conn = MysqlProperties.getSourceConnection()) {
+			if (conn == null) {
+				return null;
+			}
+			conn.setAutoCommit(false);
+			try {
+				// Execute the insert and retrieve generated keys
+				generatedKeys = runner.insert(conn, sql, new MapHandler(), (Object[]) inputDataList);
+				conn.commit();
+			} catch (Exception e) {
+				conn.rollback();
+				LOG.error("Error executing insert statement", e);
+				throw e;
+			} finally {
+				conn.setAutoCommit(true);
+			}
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return generatedKeys;
 	}
 
 	public void insertData(List<Map<String, Object>> dataList, int batchSize) throws SQLException {
