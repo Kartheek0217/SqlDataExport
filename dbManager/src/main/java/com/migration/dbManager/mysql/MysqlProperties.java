@@ -1,4 +1,4 @@
-package com.migration.dbManager.Mysql;
+package com.migration.dbManager.mysql;
 
 import java.io.IOException;
 import java.io.InputStream;

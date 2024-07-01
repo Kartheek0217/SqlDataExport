@@ -1,4 +1,4 @@
-package com.migration.dbManager.Mysql;
+package com.migration.dbManager.mysql;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -24,10 +24,10 @@ public class MysqlOperations {
 
 	public List<Map<String, Object>> getSourceListByQuery(String sourceQuery) {
 		LOG.info("entered getSourceListByQuery");
-		LOG.info("sourceQuery :: {}", sourceQuery);
 		List<Map<String, Object>> sourceList = null;
 		final QueryRunner runner = new QueryRunner();
 		try (Connection conn = MysqlProperties.getSourceConnection()) {
+			LOG.info("sourceQuery :: {}", sourceQuery);
 			sourceList = runner.query(conn, sourceQuery, new MapListHandler());
 		} catch (SQLException ex) {
 			LOG.error("exception in getSourceListByQuery ::", ex);
@@ -37,10 +37,10 @@ public class MysqlOperations {
 
 	public List<Map<String, Object>> getDestinationListByQuery(String destinationQuery) {
 		LOG.info("entered getDestinationListByQuery");
-		LOG.info("destinationQuery :: {}", destinationQuery);
 		List<Map<String, Object>> destinationList = null;
 		final QueryRunner runner = new QueryRunner();
 		try (Connection conn = MysqlProperties.getDestinationConnection()) {
+			LOG.info("destinationQuery :: {}", destinationQuery);
 			destinationList = runner.query(conn, destinationQuery, new MapListHandler());
 		} catch (SQLException ex) {
 			LOG.error("exception in getDestinationListByQuery ::", ex);
@@ -63,15 +63,15 @@ public class MysqlOperations {
 		LOG.info("entering exportSourceListToCsv");
 		List<Map<String, Object>> sourceList = getSourceListByQuery(sourceQuery);
 		if (sourceList.isEmpty()) {
-			LOG.debug("The data is empty, unable create file: {}", filePath);
+			LOG.debug("The data is empty, unable create the file: {}", filePath);
 			return;
 		}
 		try (CSVWriter writer = new CSVWriter(new FileWriter(filePath))) {
 			writer.writeNext(headers);
 			String[] values = new String[headers.length];
-			for (Map<String, Object> row : sourceList) {
+			for (Map<String, Object> listRow : sourceList) {
 				for (int i = 0; i < headers.length; i++) {
-					Object cellValue = row.get(headers[i]);
+					Object cellValue = listRow.get(headers[i]);
 					values[i] = processCell(cellValue);
 				}
 				writer.writeNext(values);
@@ -92,9 +92,9 @@ public class MysqlOperations {
 		try (CSVWriter writer = new CSVWriter(new FileWriter(filePath))) {
 			writer.writeNext(headers);
 			String[] values = new String[headers.length];
-			for (Map<String, Object> row : sourceList) {
+			for (Map<String, Object> listRow : sourceList) {
 				for (int i = 0; i < headers.length; i++) {
-					Object cellValue = row.get(headers[i]);
+					Object cellValue = listRow.get(headers[i]);
 					values[i] = processCell(cellValue);
 				}
 				writer.writeNext(values);
