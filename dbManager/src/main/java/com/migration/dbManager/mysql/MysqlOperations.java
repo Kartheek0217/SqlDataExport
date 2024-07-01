@@ -2,14 +2,15 @@ package com.migration.dbManager.mysql;
 
 import java.io.FileWriter;
 import java.io.IOException;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.MapHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,22 +106,66 @@ public class MysqlOperations {
 		}
 	}
 
-	public void insertData(List<Map<String, Object>> dataList, int batchSize) throws SQLException {
-		final String sql = "INSERT INTO destination_table (id, column1, column2) VALUES (?, ?, ?)";
-		try (final Connection conn = MysqlConnections.getDestinationConnection();
-				final PreparedStatement ps = conn.prepareStatement(sql)) {
-			int count = 0;
-			for (Map<String, Object> data : dataList) {
-				ps.setInt(1, (Integer) data.get("id"));
-				ps.setString(2, (String) data.get("column1"));
-				ps.setString(3, (String) data.get("column2"));
-				ps.addBatch();
-				if (++count % batchSize == 0) {
-					ps.executeBatch();
-				}
+	public void insertIntoDestinationBySourceQuery(String sourceGetQuery, String destinationInsertQuery) {
+		LOG.info("Entered insertIntoDestinationBySourceQuery");
+		try (Connection destinationConn = MysqlConnections.getDestinationConnection()) {
+			if(destinationConn == null) {
+				LOG.error("Exception in destinationConn");
+				return;
 			}
-			ps.executeBatch(); // insert remaining records
+			int totalInserted = 0;
+			List<Map<String, Object>> sourceList = getSourceListByQuery(sourceGetQuery);
+			final QueryRunner runner = new QueryRunner();
+			for (Map<String, Object> row : sourceList) {
+				Object[] params = row.values().toArray();
+				int inserted = runner.update(destinationConn, destinationInsertQuery, params);
+				totalInserted += inserted;
+			}
+			LOG.info("Inserted {} records into destination", totalInserted);
+		} catch (SQLException ex) {
+			LOG.error("Exception in insertIntoDestination ::", ex);
 		}
+	}
+	
+	public void insertIntoSourceBySourceQuery(String sourceGetQuery, String sourceInsert) {
+		LOG.info("Entered insertIntoDestinationBySourceQuery");
+		try (Connection sourceConn = MysqlConnections.getSourceConnection()) {
+			int totalInserted = 0;
+			List<Map<String, Object>> sourceList = getSourceListByQuery(sourceGetQuery);
+			final QueryRunner runner = new QueryRunner();
+			for (Map<String, Object> row : sourceList) {
+				Object[] params = row.values().toArray();
+				int inserted = runner.update(sourceConn, sourceInsert, params);
+				totalInserted += inserted;
+			}
+			LOG.info("Inserted {} records into destination", totalInserted);
+		} catch (SQLException ex) {
+			LOG.error("Exception in insertIntoDestination ::", ex);
+		}
+	}
+
+	public Map<String, Object> insertAndGetGeneratedKeys(String sql, String[] inputDataList) throws Exception {
+		Map<String, Object> generatedKeys = new HashMap<>();
+		try (Connection conn = MysqlConnections.getDestinationConnection()) {
+			if (conn == null) {
+				throw new SQLException("Failed to obtain database connection");
+			}
+			QueryRunner runner = new QueryRunner();
+			conn.setAutoCommit(false);
+			try {
+				// Execute the insert and retrieve generated keys
+				generatedKeys = runner.insert(conn, sql, new MapHandler(), (Object[]) inputDataList);
+				conn.commit();
+			} catch (Exception e) {
+				conn.rollback();
+				LOG.error("Error executing insert statement", e);
+				throw e;
+			} finally {
+				conn.setAutoCommit(true);
+			}
+		}
+
+		return generatedKeys;
 	}
 
 }
