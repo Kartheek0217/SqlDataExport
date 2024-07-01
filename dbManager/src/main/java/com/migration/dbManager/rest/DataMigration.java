@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.migration.dbManager.Mysql.MysqlOperations;
+import com.migration.dbManager.mysql.MysqlOperations;
 
 @RestController
 @RequestMapping("/migration")
