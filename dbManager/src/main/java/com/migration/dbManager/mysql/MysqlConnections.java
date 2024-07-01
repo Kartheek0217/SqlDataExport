@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-public class MysqlProperties {
+public class MysqlConnections {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MysqlProperties.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MysqlConnections.class);
 
 	private static final HikariDataSource sourceDataSource;
 	private static final HikariDataSource destinationDataSource;

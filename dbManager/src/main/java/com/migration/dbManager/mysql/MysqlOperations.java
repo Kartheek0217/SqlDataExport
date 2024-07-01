@@ -26,7 +26,7 @@ public class MysqlOperations {
 		LOG.info("entered getSourceListByQuery");
 		List<Map<String, Object>> sourceList = null;
 		final QueryRunner runner = new QueryRunner();
-		try (Connection conn = MysqlProperties.getSourceConnection()) {
+		try (Connection conn = MysqlConnections.getSourceConnection()) {
 			LOG.info("sourceQuery :: {}", sourceQuery);
 			sourceList = runner.query(conn, sourceQuery, new MapListHandler());
 		} catch (SQLException ex) {
@@ -39,7 +39,7 @@ public class MysqlOperations {
 		LOG.info("entered getDestinationListByQuery");
 		List<Map<String, Object>> destinationList = null;
 		final QueryRunner runner = new QueryRunner();
-		try (Connection conn = MysqlProperties.getDestinationConnection()) {
+		try (Connection conn = MysqlConnections.getDestinationConnection()) {
 			LOG.info("destinationQuery :: {}", destinationQuery);
 			destinationList = runner.query(conn, destinationQuery, new MapListHandler());
 		} catch (SQLException ex) {
@@ -107,7 +107,7 @@ public class MysqlOperations {
 
 	public void insertData(List<Map<String, Object>> dataList, int batchSize) throws SQLException {
 		final String sql = "INSERT INTO destination_table (id, column1, column2) VALUES (?, ?, ?)";
-		try (final Connection conn = MysqlProperties.getDestinationConnection();
+		try (final Connection conn = MysqlConnections.getDestinationConnection();
 				final PreparedStatement ps = conn.prepareStatement(sql)) {
 			int count = 0;
 			for (Map<String, Object> data : dataList) {
